@@ -1,0 +1,40 @@
+#!/usr/bin/perl
+use v5.18;
+
+my $output_file = './public/us_state_data_parsed.csv';
+my $csv_dir_path = './covid_data';
+my %states;
+
+my @filtered = ("Diamond Princess", "Grand Princess", "Guam",
+  "Northern Mariana Islands", "Puerto Rico", "Recovered", "Virgin Islands");
+
+foreach my $file (glob("$csv_dir_path/*.csv")) {
+  open my $csv, "<", $file or die "Error opening '$file'";
+  while (<$csv>) {
+    chomp $_;
+    my @fields = split ",", $_;
+    if ($fields[3] eq "US") {
+      if (!(grep { $_ eq $fields[2] } @filtered)) {
+        if ($fields[2] eq "District of Columbia") {
+          $states{"Washington"} += $fields[8];
+        } else {
+          $states{$fields[2]} += $fields[8];
+        }
+      }
+    }
+  }
+  close $csv or die "Error closing '$file'";
+}
+
+open STATE_DATA, ">", $output_file;
+select STATE_DATA;
+
+say "state,deaths";
+
+foreach my $state (sort keys %states) {
+    say "$state,$states{$state}";
+}
+
+select STDOUT;
+
+close STATE_DATA or die "Error closing '$output_file'";
