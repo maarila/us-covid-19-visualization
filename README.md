@@ -1,6 +1,6 @@
 ## us-covid-19-visualization
 
-Work in progress.
+***Work in progress.***
 
 A visualization of the COVID-19 epidemic in the United States. Built with Perl, React and D3.js.
 
