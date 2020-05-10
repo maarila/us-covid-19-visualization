@@ -2,6 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: Helvetica, Palatino, Garamond, Arial, sans-serif;
 }
 
 path:hover {
@@ -11,4 +12,53 @@ path:hover {
 .map-wrapper {
   display: flex;
   justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid red;
+}
+
+div.tooltip {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 180px;
+  height: 30px;
+  padding: 2px;
+  font: sans-serif;
+  background: white;
+  border: 1px solid black;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.main-title {
+  display: flex;
+  color: black;
+  font-size: 2.5em;
+  border-bottom: 2px dashed black;
+  text-align: center;
+  padding: 10px 20px 6px 20px;
+}
+
+.content {
+  border: 1px solid green;
+  width: 80%;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  border: 1px solid red;
+  width: 100%;
+}
+
+.legend {
+  position: absolute;
+  left: 1035px;
+  top: 505px;
+  font-size: 0.95em;
 }

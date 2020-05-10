@@ -6,22 +6,83 @@ const UnitedStatesMap = () => {
   const ref = useRef();
 
   useEffect(() => {
-    const width = 1280;
-    const height = 800;
+    const width = 1050;
+    const height = 600;
 
     const svg = d3.select(ref.current);
+
+    const div = d3
+      .select('body')
+      .append('div')
+      .attr('class', 'tooltip')
+      .style('opacity', 0);
+
+    const color = d3
+      .scaleLinear()
+      .range([
+        'rgb(255,225,225)',
+        'rgb(255,204,204)',
+        'rgb(255,153,153)',
+        'rgb(255,102,102)',
+        'rgb(255,51,51)',
+        'rgb(255,0,0)',
+        'rgb(204,0,0)',
+        'rgb(120,0,0)'
+      ])
+      .domain([0, 1, 2, 3, 4, 5, 6, 7]);
+
+    const legendTitles = [
+      '0 - 10',
+      '11 - 100',
+      '101 - 500',
+      '501 - 1000',
+      '1001 - 2000',
+      '2001 - 5000',
+      '5001 - 10000',
+      '10000 -'
+    ];
+
+    const legend = d3
+      .select('body')
+      .append('svg')
+      .attr('class', 'legend')
+      .attr('width', 140)
+      .attr('height', 200)
+      .selectAll('g')
+      .data(color.domain())
+      .enter()
+      .append('g')
+      .attr('transform', (d, i) => {
+        return 'translate(0,' + i * 20 + ')';
+      });
+
+    legend
+      .append('circle')
+      .attr('r', '0.55em')
+      .attr('cy', 11)
+      .attr('cx', 11)
+      .style('fill', color);
+    // .style('stroke', 'rgb(0,0,0)');
+
+    legend
+      .append('text')
+      .data(legendTitles)
+      .attr('x', 28)
+      .attr('y', 11)
+      .attr('dy', '.35em')
+      .text(d => {
+        return d;
+      });
 
     const projection = d3
       .geoAlbersUsa()
       .translate([width / 2, height / 2])
-      .scale([1500]);
+      .scale([1300]);
 
     const path = d3.geoPath().projection(projection);
 
     const stateColor = color => {
-      if (!color) {
-        return 'rgb(255,255,255)';
-      } else if (color === 0) {
+      if (!color || color === 0) {
         return 'rgb(255,255,255)';
       } else if (color > 0 && color <= 10) {
         return 'rgb(255,225,225)';
@@ -31,52 +92,77 @@ const UnitedStatesMap = () => {
         return 'rgb(255,153,153)';
       } else if (color > 500 && color <= 1000) {
         return 'rgb(255,102,102)';
-      } else if (color > 1000 && color <= 3000) {
+      } else if (color > 1000 && color <= 2000) {
         return 'rgb(255,51,51)';
-      } else if (color > 3000 && color < 5000) {
+      } else if (color > 2000 && color <= 5000) {
         return 'rgb(255,0,0)';
-      } else {
+      } else if (color > 5000 && color <= 10000) {
         return 'rgb(204,0,0)';
+      } else {
+        return 'rgb(120,0,0)';
       }
     };
 
-    d3.csv('./us_state_data_parsed.csv').then(function(state_data) {
-      d3.json('./us_state_boundaries.json').then(function(json) {
-        for (let i = 0; i < state_data.length; i++) {
-          const stateNameInCsv = state_data[i].state;
-          const numberOfDeaths = state_data[i].deaths;
+    d3.csv('./us_state_data_parsed.csv').then(stateData => {
+      d3.json('./us_state_boundaries.json').then(jsonData => {
+        stateData.forEach((state, i) => {
+          const stateNameInCsv = stateData[i].state;
+          const numberOfDeaths = stateData[i].deaths;
 
-          for (let j = 0; j < json.features.length; j++) {
-            var stateNameInJson = json.features[j].properties.name;
-
+          jsonData.features.forEach((feature, j) => {
+            var stateNameInJson = jsonData.features[j].properties.name;
             if (stateNameInCsv === stateNameInJson) {
-              json.features[j].properties.deaths = numberOfDeaths;
-              break;
+              jsonData.features[j].properties.deaths = numberOfDeaths;
+              return;
             }
-          }
-        }
+          });
+        });
+
         svg
           .selectAll('path')
-          .data(json.features)
+          .data(jsonData.features)
           .enter()
           .append('path')
           .attr('d', path)
           .style('stroke', '#770000')
           .style('stroke-width', '2')
-          .style('fill', function(d) {
+          .style('fill', d => {
             return stateColor(d.properties.deaths);
+          })
+          .on('mouseover', d => {
+            div
+              .transition()
+              .duration(200)
+              .style('opacity', 0.95);
+            div
+              .text(d.properties.name + ': ' + d.properties.deaths)
+              .style('left', d3.event.pageX + 'px')
+              .style('top', d3.event.pageY - 28 + 'px');
+          })
+          .on('mouseout', d => {
+            div
+              .transition()
+              .duration(200)
+              .style('opacity', 0);
           });
       });
     });
   });
 
-  return <svg ref={ref} className="content" width="1280" height="800" />;
+  return <svg ref={ref} className="content" height="650" />;
+};
+
+const Title = () => {
+  return <div className="main-title">United States COVID-19 casualties by state</div>;
 };
 
 const App = () => {
   return (
     <div className="map-wrapper">
-      <UnitedStatesMap />
+      <Title />
+      <div className="container">
+        <UnitedStatesMap />
+      </div>
     </div>
   );
 };
